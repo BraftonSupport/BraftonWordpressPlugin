@@ -16,6 +16,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     public $ArticleCount;
     public $ClientCategory;
     public $Sitemap;
+    public $VidSrc;
 
     public function __construct(){
         require_once BRAFTON_DIR.'libs/VideoAPILibrary/AdferoArticlesVideoExtensions/AdferoVideoClient.php';
@@ -115,15 +116,43 @@ class BraftonVideoLoader extends BraftonFeedLoader {
     }
     
     function generate_source_tag($src, $resolution){
-        $ext = pathinfo($src, PATHINFO_EXTENSION); 
 
+        $ext = pathinfo($src, PATHINFO_EXTENSION); 
         return sprintf('<source src="%s" type="video/%s" data-resolution="%s" />', $src, $ext, $resolution );
     }
-    
+
+    public function seedMicrodata($artObj) {
+        
+        $md_name = $artObj['title'];
+        $md_url = $artObj['url'];
+        $md_thumb = $artObj['thumbnail'];
+        $md_description = $artObj['description'];
+        $md_image = fopen($this->VidSrc,"b");
+        echo '<pre>testing:'. filesize($this->VidSrc) .'</pre>';
+        $md_embedurl = $this->VidSrc;
+        $md_date = $artObj['date'];
+        $schema = <<<BBB
+                <script type="application/ld+json">
+                    {
+                    "@context": "http://schema.org",
+                    "@type": "VideoObject",
+                    "name": "$md_name",
+                    "description": "$md_description",
+                    "thumbnailUrl": "$md_thumb",
+                    "uploadDate": "$md_date",
+                    "contentUrl": "$md_url",
+                    "embedUrl" : "$md_embedurl"
+                    }
+                </script>
+BBB;
+        return $schema;
+    }
+
     public function generateEmbed($list, $splash, $brafton_id){
+
         $loop = $this->errors->get_section();
         $this->errors->set_section('Build embeed code for '.$brafton_id);
-        $video =  "<div id='singlePostVideo'>";
+        $video = "<div id='singlePostVideo'>";
         $atlantis = false;
         //define video types
         $atlatisjs = sprintf( "<video id='video-%s' class=\"ajs-default-skin atlantis-js\" controls preload=\"auto\" width='512' height='288' poster='%s' >", $brafton_id, $splash['preSplash'] ); 
@@ -137,6 +166,9 @@ class BraftonVideoLoader extends BraftonFeedLoader {
             $video .= $videojs;
             break;
         }
+        /*echo "<pre>";
+        var_dump($this->VideoClientOutputs->Get($list[0]->id));
+        echo "</pre>";*/
         foreach($list as $listItem){
             $output = $this->VideoClientOutputs->Get($listItem->id);
             $type = $output->type;
@@ -145,6 +177,7 @@ class BraftonVideoLoader extends BraftonFeedLoader {
             $source = $this->generate_source_tag($path, $resolution);
             $video .= $source;
         }
+        $this->VidSrc = $path;
         //build cta
         if($atlantis){
             $this->errors->debug_trace(array('message' => 'Using AtlantisJS video player', 'file' => __FILE__, 'line' => __LINE__));
@@ -238,12 +271,9 @@ EOC;
         $this->errors->debug_trace(array('message' => 'Getting Client', 'file' => __FILE__, 'line' => __LINE__));
         $this->Client = new AdferoClient($this->VideoURL, $this->PublicKey, $this->PrivateKey);
         $this->errors->debug_trace(array('message' => 'Getting PhotoClient', 'file' => __FILE__, 'line' => __LINE__));
-        $this->PhotoClient = new AdferoPhotoClient($this->PhotoURL);
-
+        $this->PhotoClient = new AdferoPhotoClient($this->PhotoURL);  
         $this->VideoClientOutputs = $this->VideoClient->videoOutputs();
-
         $this->ArticlePhotos = $this->Client->ArticlePhotos();
-
         $feeds = $this->Client->Feeds();
         $feedList = $feeds->ListFeeds(0,10);
         if($feedList->totalCount == 0){
@@ -314,7 +344,7 @@ EOC;
                 $post_content = $thisArticle->fields['content'];
                 $post_title = $thisArticle->fields['title'];
                 $post_excerpt = $thisArticle->fields['extract'];
-                $post_excerpt = $post_excerpt == null? '': $post_excerpt;
+                $post_excerpt = $post_excerpt == null? ' ': $post_excerpt;
                 $post_status = $this->options['braftonPostStatus'];
 
                 $post_date_array = $this->getPostDate($thisArticle->fields['date']);
@@ -378,10 +408,12 @@ EOC;
                     $sitemap[]=$sitemapaddition;
                     */
                 }
+                
                 //Generate the video embed code
                 $videoList = $this->VideoClientOutputs->ListForArticle($brafton_id,0,10);
                 $list = $videoList->items;
                 $embed_code = $this->generateEmbed($list, $postSplash, $brafton_id);
+                
                 //get the photo
                 $thisPhoto = $this->ArticlePhotos->ListForArticle($brafton_id,0,100);
                 if(isset($thisPhoto->items[0]->id)){
@@ -396,18 +428,32 @@ EOC;
                     $temp_name = $this->image_download($post_image, $post_id, $image_id, $image_alt, $post_image_caption);
                     update_post_meta($post_id, 'pic_id', $image_id);
                 }
+                $microdataArray = array(
+                    "url" => get_permalink($post_id),
+                    "title" => $post_title,
+                    "thumbnail" => get_the_post_thumbnail_url($post_id),
+                    "description" => get_the_excerpt($post_id),
+                    "video" => $this->VidSrc,
+                    "date" => $post_date
+                );
+                $microdata = $this->seedMicrodata($microdataArray);
                 $meta_array = array(
                     'brafton_id'        => $brafton_id,
-                    'brafton_video'     => $embed_code
+                    'brafton_video'     => $embed_code,
+                    'brafton_microdata' => $microdata
                 );
-                foreach($this->supported_seo_plugins as $plugin => $fields){
-                    if(is_plugin_active($plugin)){
-                        $seo_fields = array();
-                        foreach($fields as $key => $value){
-                            $seo_fields[$value] = $$key;
-                        }
-                        $meta_array = array_merge($meta_array, $seo_fields);
-                    }
+                if(is_plugin_active('wordpress-seo/wp-seo.php')){
+                    $meta_array = array_merge($meta_array, array(
+                        '_yoast_wpseo_title'    => $post_title,
+                        '_yoast_wpseo_metadesc' => $post_excerpt,
+                        '_yoast_wpseo_metakeywords' => ''
+                    ));
+                }
+                if(function_exists('aioseop_get_version')){
+                    $meta_array = array_merge($meta_array, array(
+                        '_aioseop_description'  => $post_excerpt,
+                        '_aioseop_keywords'     => ''
+                    ));
                 }
                 $this->add_needed_meta($post_id, $meta_array);
 

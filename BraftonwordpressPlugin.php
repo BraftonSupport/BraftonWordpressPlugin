@@ -3,7 +3,7 @@
 	Plugin Name: Content Importer
 	Plugin URI: http://www.brafton.com/support/wordpress
 	Description: Wordpress Plugin for Importing marketing content from Brafton, ContentLEAD, and Castleford Media Corp.  Support in line content, dynamic Authors, Updating and Error reporting. video requires php 5.3 or higher.
-	Version: 3.4.12
+	Version: 3.4.9
     Requires: 3.5
 	Author: Brafton, Inc.
 	Author URI: http://www.brafton.com/support/wordpress
@@ -19,7 +19,7 @@ if( class_exists( 'XMLHandler' ) ){
     exit();
 }
 
-define("BRAFTON_VERSION", '3.4.12');
+define("BRAFTON_VERSION", '3.4.9');
 
 define("BRAFTON_ROOT", plugin_dir_url(__FILE__));
 
@@ -186,7 +186,7 @@ class BraftonWordpressPlugin {
         if($file == plugin_basename(__FILE__)){
             $admin = admin_url('/', 'admin');
             $links[] = '<a href="'.$admin.'admin.php?page=BraftonArticleLoader">Settings</a>';
-            //$links[] = '<a href="http://localhost/wp_feature/wp-content/plugins/BraftonWordpressPlugin/ImporterInstructions.pdf" target="_blank">Instructions</a>';
+            $links[] = '<a href="http://localhost/wp_feature/wp-content/plugins/BraftonWordpressPlugin/ImporterInstructions.pdf" target="_blank">Instructions</a>';
         }
         return $links;
     }
@@ -232,7 +232,8 @@ class BraftonWordpressPlugin {
             $static = $ops->getAll();
             if($static['braftonVideoOutput']){
                 if($meta=get_post_meta(get_the_ID(), "brafton_video", true)){
-                    $content = $static['braftonVideoOutput'] == 'after'? $content . $meta : $meta . $content;
+                    $micro = get_post_meta(get_the_ID(), "brafton_microdata", true)!= NULL ? get_post_meta(get_the_ID(), "brafton_microdata", true) : " ";
+                    $content = $static['braftonVideoOutput'] == 'after'? $content . $meta . $micro: $micro . $meta . $content;
                 }
             }
         }
@@ -402,8 +403,8 @@ EOC;
             $player = $static['braftonVideoPlayer'];
             $videojs = '//vjs.zencdn.net/4.3/video.js';
             $videocss = '//vjs.zencdn.net/4.3/video-js.css';
-            $atlantisjs = 'https://atlantisjs.brafton.com/v1/atlantis.min.v1.3.js';
-            $atlantiscss = 'https://atlantisjs.brafton.com/v1/atlantisjsv1.4.css';
+            $atlantisjs = '//atlantisjs.brafton.com/v1/atlantis.min.v1.3.js';
+            $atlantiscss = '//atlantisjs.brafton.com/v1/atlantisjsv1.4.css';
             wp_enqueue_script('brafton-video-playback', $$player, array(), null);
             wp_enqueue_style('brafton-video-css', ($player == "atlantisjs"? $atlantiscss : $videocss), array(),null);
 
