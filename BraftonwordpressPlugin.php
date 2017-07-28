@@ -232,7 +232,7 @@ class BraftonWordpressPlugin {
             $static = $ops->getAll();
             if($static['braftonVideoOutput']){
                 if($meta=get_post_meta(get_the_ID(), "brafton_video", true)){
-                    $micro = get_post_meta(get_the_ID(), "brafton_video_microdata", true)!= NULL ? get_post_meta(get_the_ID(), "brafton_video_microdata", true) : " ";
+                    $micro = get_post_meta(get_the_ID(), "brafton_video_microdata", true) ? get_post_meta(get_the_ID(), "brafton_video_microdata", true) : " ";
                     $content = $static['braftonVideoOutput'] == 'after'? $content . $meta . $micro: $micro . $meta . $content;
                 }
             }
