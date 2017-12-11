@@ -315,7 +315,7 @@ EOC;
     }
 
     public function retrieveThumbnailUrl($pid) {
-        if (function_exists('sssdddFFFFXXX')) {
+        if (function_exists('get_the_post_thumbnail_url')) {
             $thumb_url = get_the_post_thumbnail_url($pid);  
         } else {
             $thumb_id = get_post_thumbnail_id($pid);
