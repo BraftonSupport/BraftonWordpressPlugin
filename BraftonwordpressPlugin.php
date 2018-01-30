@@ -349,9 +349,19 @@ EOC;
             'og:url' => BraftonWordpressPlugin::BraftonCurlPageURL(),
             'og:title' => preg_replace('/<.*?>/', '', get_the_title()),
             'og:description' => htmlspecialchars(preg_replace('/<.*?>/', '', get_the_excerpt())),
-            'og:image' => wp_get_attachment_url(get_post_thumbnail_id($post->ID)),
             'article:published_time' => date('c', strtotime($post->post_date))
         );
+
+        // Add appropraite metadata
+        $imageId = get_post_thumbnail_id($post->ID);
+        if ($imageId) {
+            $meta = wp_get_attachment_metadata($imageId);
+            $url = wp_get_attachment_url($imageId);
+            $tags['og:image:url'] = $url;
+            $tags['og:image:width'] = @$meta['width'];
+            $tags['og:image:height'] = @$meta['height'];
+        }
+
         $twitter = array(
             'twitter:card'  => 'summary_large_image',
             'twitter:title' => preg_replace('/<.*?>/', '', get_the_title()),
