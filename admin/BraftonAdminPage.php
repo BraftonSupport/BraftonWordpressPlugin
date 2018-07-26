@@ -30,7 +30,7 @@ jQuery( document ).tooltip();
 <div id="tab-cont" class="tabs">
     <img src="<?php echo plugin_dir_url(__FILE__); ?>/img/banner_<?php echo strtolower(BRAFTON_BRAND); ?>.jpg" style="width:100%;">
     <!-- @Issue 65 permission error on saving for multisites -->
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING']; ?>" class="braf_options_form" onsubmit="return settingsValidate()">
+    <form method="post" action="<?php echo get_admin_url(null,'admin.php').'?'.$_SERVER['QUERY_STRING']; ?>" class="braf_options_form" onsubmit="return settingsValidate()">
         <div class="menu-container">
     <ul id="braftonMenuNavigation">
         <li class="<?php echo $admin->status; ?>" style="text-align:center"><a href="#tab-1" class="<?php echo $admin->status; ?>">Status</a></li>
