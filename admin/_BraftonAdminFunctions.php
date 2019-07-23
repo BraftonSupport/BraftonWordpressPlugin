@@ -938,7 +938,7 @@ echo $errors[$i]['client_sys_time'].':<br/>----'.$errors[$i]['error'].'<br>';
                 <option value="api.brafton.com" <?php checkRadioval($options['braftonApiDomain'], 'api.brafton.com', 'selected'); ?>>Brafton</option>
                 <option value="api.contentlead.com" <?php checkRadioval($options['braftonApiDomain'], 'api.contentlead.com', 'selected'); ?>>ContentLEAD</option>
                 <option value="api.castleford.com.au" <?php checkRadioval($options['braftonApiDomain'], 'api.castleford.com.au', 'selected'); ?>>Castleford</option>
-
+                <option value="api.castleford-media.com.au" <?php checkRadioval($options['braftonApiDomain'], 'api.castleford-media.com.au', 'selected'); ?>>Castleford Media</option>
             </select>
     <?php
     }
