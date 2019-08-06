@@ -251,6 +251,8 @@ class BraftonArticleLoader extends BraftonFeedLoader {
                 $the_categories = $this->assignCategories($article);
                 $this->errors->set_section('Main article loop');
                 $the_tags = $this->assignTags($article);
+                $keywords = $article->getKeywords();
+                $keywords = "some keywords, help me";
                 $this->errors->set_section('Main article loop');
                 if($this->options['braftonArticlePostType']){
                      $type = strtolower(
@@ -292,13 +294,14 @@ class BraftonArticleLoader extends BraftonFeedLoader {
                     $meta_array = array_merge($meta_array, array(
                         '_yoast_wpseo_title'    => $post_title,
                         '_yoast_wpseo_metadesc' => $post_excerpt,
-                        '_yoast_wpseo_metakeywords' => ''
+                        '_yoast_wpseo_metakeywords' => $keywords,
+                        '_yoast_wpseo_focuskw'      => $keywords
                     ));
                 }
                 if(function_exists('aioseop_get_version')){
                     $meta_array = array_merge($meta_array, array(
                         '_aioseop_description'  => $post_excerpt,
-                        '_aioseop_keywords'     => ''
+                        '_aioseop_keywords'     => $keywords
                     ));
                 }
                 $this->add_needed_meta($post_id, $meta_array);
