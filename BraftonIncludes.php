@@ -17,7 +17,7 @@ function switchCase($brand){
         case 'api.contentlead.com':
         return 'ContentLEAD';
         break;
-        case 'api.castleford.com.au':
+        case 'api.castleford.com.au' || 'api.castlefordmedia.com.au':
         return 'Castleford';
         break;
     }
