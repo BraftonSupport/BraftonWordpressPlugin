@@ -19,6 +19,7 @@ if( class_exists( 'XMLHandler' ) ){
     exit();
 }
 
+
 define("BRAFTON_VERSION", '3.4.16');
 
 define("BRAFTON_ROOT", plugin_dir_url(__FILE__));
