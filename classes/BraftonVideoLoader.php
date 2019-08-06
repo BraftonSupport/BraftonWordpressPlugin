@@ -313,6 +313,18 @@ EOC;
         return $msg;
         
     }
+
+    public function retrieveThumbnailUrl($pid) {
+        if (function_exists('get_the_post_thumbnail_url')) {
+            $thumb_url = get_the_post_thumbnail_url($pid);  
+        } else {
+            $thumb_id = get_post_thumbnail_id($pid);
+            $thumb_array = wp_get_attachment_image_src($thumb_id,'thumbnail-size', true);
+            $thumb_url = $thumb_array[0];
+        }
+        return $thumb_url;
+    }
+    
     public function runLoop(){
         $this->errors->set_section('Video Master loop');
         //Define local vars for the loop
@@ -425,7 +437,7 @@ EOC;
                 $microdataArray = array(
                     "url" => get_permalink($post_id),
                     "title" => $post_title,
-                    "thumbnail" => get_the_post_thumbnail_url($post_id),
+                    "thumbnail" => $this->retrieveThumbnailUrl($post_id),
                     "description" => get_the_excerpt($post_id),
                     "video" => $vidSrc,
                     "date" => $post_date
