@@ -252,7 +252,7 @@ class BraftonArticleLoader extends BraftonFeedLoader {
                 $this->errors->set_section('Main article loop');
                 $the_tags = $this->assignTags($article);
                 $keywords = $article->getKeywords();
-                $keywords = "some keywords, help me";
+                
                 $this->errors->set_section('Main article loop');
                 if($this->options['braftonArticlePostType']){
                      $type = strtolower(
