@@ -39,17 +39,17 @@ class BraftonFeedLoader {
         if(!is_multisite() && $this->user){
             wp_set_current_user($this->user->ID);
         }else if(is_multisite()){
-            
-            //$admins = new WP_User_Query( array( 'blog_id' => 1, 'role'   => 'administrator' ) );
-            //$admins = $admins->results[0]->data;
             $admins = get_super_admins();
-            foreach($admins as $admin){
-                $user = get_user_by('login', $admins[0]);
+            if($admins){
+                $admin = array_pop(array_reverse($admins));
+                $user = get_user_by('login', $admin);
                     if(is_super_admin($user->data->ID)){
                         wp_set_current_user($user->data->ID);
-                        break;
                     }
+            }else{
+                trigger_error('Super Admin could not be set.  Certain content may not import properly', E_USER_NOTICE);  
             }
+
         }else{
             trigger_error('Importer User is not set or wordpress could not retrieve the user ID.  Certain content may not import properly', E_USER_NOTICE);   
         }
