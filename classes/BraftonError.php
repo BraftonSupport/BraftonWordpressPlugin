@@ -161,7 +161,7 @@ class BraftonErrorReport {
         return false;
     }
     //workhorse of the error reporting.  This function does the heavy lifting of logging the error and sending an error report
-    public function log_exception( Exception $e ){
+    public function log_exception( Throwable $e ){
         $errorLevel = method_exists($e,'getseverity')? $e->getseverity(): 2;
         $errorLevel = $this->forceVital( $e->getMessage() )? 1 : $errorLevel;
 
