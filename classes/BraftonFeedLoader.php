@@ -43,7 +43,6 @@ class BraftonFeedLoader {
             if($admins){
                 $admin = array_pop(array_reverse($admins));
                 $user = get_user_by('login', $admin);
-                $user = get_user_by('login', $user);
                     if(is_super_admin($user->data->ID)){
                         wp_set_current_user($user->data->ID);
                     }

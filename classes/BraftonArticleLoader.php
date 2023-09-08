@@ -170,7 +170,9 @@ class BraftonArticleLoader extends BraftonFeedLoader {
                 $TagColl = $obj->getTags();
                 break;
             }
-            $TagColl = explode(',', $TagColl);
+            if(!is_array($TagColl)){
+                $TagColl = explode(',', $TagColl);
+            }
             foreach($TagColl as $tag){
                 $tags[] = esc_sql($tag);
             }
