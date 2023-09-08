@@ -3,7 +3,7 @@
 	Plugin Name: Content Importer
 	Plugin URI: http://www.brafton.com/support/wordpress
 	Description: Wordpress Plugin for Importing marketing content from Brafton, ContentLEAD, and Castleford Media Corp.  Support in line content, dynamic Authors, Updating and Error reporting. video requires php 5.3 or higher.
-	Version: 3.4.19
+	Version: 3.4.20
     Requires: 3.5
 	Author: Brafton, Inc.
 	Author URI: http://www.brafton.com/support/wordpress
@@ -20,7 +20,7 @@ if( class_exists( 'XMLHandler' ) ){
 }
 
 
-define("BRAFTON_VERSION", '3.4.19');
+define("BRAFTON_VERSION", '3.4.20');
 
 define("BRAFTON_ROOT", plugin_dir_url(__FILE__));
 
