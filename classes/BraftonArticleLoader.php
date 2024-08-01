@@ -301,7 +301,7 @@ class BraftonArticleLoader extends BraftonFeedLoader {
                         '_yoast_wpseo_focuskw'      => $keywords
                     ));
                 }
-                if(function_exists('aioseop_get_version')){
+                if(is_plugin_active('all-in-one-seo-pack/all_in_one_seo_pack.php')){
                     $meta_array = array_merge($meta_array, array(
                         '_aioseo_description'  => $post_excerpt,
                         '_aioseo_keywords'     => $keywords,
