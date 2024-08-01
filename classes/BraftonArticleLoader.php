@@ -231,6 +231,7 @@ class BraftonArticleLoader extends BraftonFeedLoader {
                     }
                 }
                 $post_excerpt = ($e = $article->getHtmlMetaDescription())? $e: $article->getExtract();
+                $seo_title = ($t = $article->getHtmlTitle())? $t: $post_title;
                 $post_excerpt = $post_excerpt == null? '' : $post_excerpt;
                 $post_date_array = $this->getPostDate($article);
                 $post_date = $post_date_array[1];
@@ -294,7 +295,7 @@ class BraftonArticleLoader extends BraftonFeedLoader {
                 );
                 if(is_plugin_active('wordpress-seo/wp-seo.php')){
                     $meta_array = array_merge($meta_array, array(
-                        '_yoast_wpseo_title'    => $post_title,
+                        '_yoast_wpseo_title'    => $seo_title,
                         '_yoast_wpseo_metadesc' => $post_excerpt,
                         '_yoast_wpseo_metakeywords' => $keywords,
                         '_yoast_wpseo_focuskw'      => $keywords
@@ -302,8 +303,9 @@ class BraftonArticleLoader extends BraftonFeedLoader {
                 }
                 if(function_exists('aioseop_get_version')){
                     $meta_array = array_merge($meta_array, array(
-                        '_aioseop_description'  => $post_excerpt,
-                        '_aioseop_keywords'     => $keywords
+                        '_aioseo_description'  => $post_excerpt,
+                        '_aioseo_keywords'     => $keywords,
+                        '_aioseo_title'        => $seo_title
                     ));
                 }
                 $this->add_needed_meta($post_id, $meta_array);

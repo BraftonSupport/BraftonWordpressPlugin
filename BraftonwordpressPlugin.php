@@ -20,7 +20,7 @@ if( class_exists( 'XMLHandler' ) ){
 }
 
 
-define("BRAFTON_VERSION", '3.4.20');
+define("BRAFTON_VERSION", '3.4.21');
 
 define("BRAFTON_ROOT", plugin_dir_url(__FILE__));
 
