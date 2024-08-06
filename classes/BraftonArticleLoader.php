@@ -302,10 +302,10 @@ class BraftonArticleLoader extends BraftonFeedLoader {
                     ));
                 }
                 if(is_plugin_active('all-in-one-seo-pack/all_in_one_seo_pack.php')){
-                    $meta_array = array_merge($meta_array, array(
-                        '_aioseo_description'  => $post_excerpt,
-                        '_aioseo_keywords'     => $keywords,
-                        '_aioseo_title'        => $seo_title
+                    \AIOSEO\Plugin\Common\Models\Post::savepost($post_id, array(
+                        'title' => $seo_title,
+                        'description' => $post_excerpt,
+                        'keywords' => $keywords
                     ));
                 }
                 $this->add_needed_meta($post_id, $meta_array);
