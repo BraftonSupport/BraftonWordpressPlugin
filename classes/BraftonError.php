@@ -115,6 +115,7 @@ class BraftonErrorReport {
                 $url = BRAFTON_BASE_URL.'logs.php?client='.$this->domain;
                 //$url = 'http://staging.updater.brafton.com/logs.php?client='.$this->domain;
                 $post_args = array(
+                    'timeout' => 5,
                     'body' => array(
                         'errors' => $jsonErrors,
                         'filename'  => $filename
@@ -224,6 +225,7 @@ class BraftonErrorReport {
     
     public function send_remote_report($errorlog){
         $post_args = array(
+            'timeout' => 5,
             'body' => array(
                 'error' => json_encode($errorlog)
             )

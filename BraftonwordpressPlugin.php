@@ -3,7 +3,7 @@
 	Plugin Name: Content Importer
 	Plugin URI: http://www.brafton.com/support/wordpress
 	Description: Wordpress Plugin for Importing marketing content from Brafton, ContentLEAD, and Castleford Media Corp.  Support in line content, dynamic Authors, Updating and Error reporting. video requires php 5.3 or higher.
-	Version: 3.4.20
+	Version: 3.4.22
     Requires: 3.5
 	Author: Brafton, Inc.
 	Author URI: http://www.brafton.com/support/wordpress
@@ -20,7 +20,7 @@ if( class_exists( 'XMLHandler' ) ){
 }
 
 
-define("BRAFTON_VERSION", '3.4.21');
+define("BRAFTON_VERSION", '3.4.22');
 
 define("BRAFTON_ROOT", plugin_dir_url(__FILE__));
 
@@ -447,22 +447,30 @@ EOC;
         $functions .= $functions == 'articles' && ($static['braftonVideoStatus']) ? ',' : '';
         $functions .= $static['braftonVideoStatus'] ? 'videos' : '';
         $fullUrl = $remoteUrl . 'clientUrl=' . $siteUrl . '&function=' .$functions;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $fullUrl);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
-        curl_exec($ch);
+        //Fire and forget: a failed call home must never block or break front end rendering
+        wp_remote_get($fullUrl, array('timeout' => 5, 'blocking' => false));
     }
     static function BraftonNotices(){
         //Notify user there is an update available
+        $version = get_transient('brafton_remote_version');
+        if($version === false){
+            $response = wp_remote_get(BRAFTON_BASE_URL."u/wordpress/update/version/", array('timeout' => 5));
+            $version = 'unavailable';
+            if(!is_wp_error($response) && wp_remote_retrieve_response_code($response) == 200){
+                $responseBody = trim(wp_remote_retrieve_body($response));
+                //Only trust a response that actually looks like a version number
+                if(preg_match('/^\d+(\.\d+)*$/', $responseBody)){
+                    $version = $responseBody;
+                }
+            }
+            //Cache failures too, so an unreachable update server is only retried twice a day
+            set_transient('brafton_remote_version', $version, 12 * HOUR_IN_SECONDS);
+        }
+        if($version == 'unavailable'){
+            return;
+        }
         $brand = BraftonOptions::getSingleOption('braftonApiDomain');
         $brand = switchCase($brand);
-        $url = BRAFTON_BASE_URL."/u/wordpress/update/version/";
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
-        $version = curl_exec($ch);
 
         if(version_compare(BRAFTON_VERSION, $version, '<')){
             echo "<div class='brafton".BRAFTON_VERSION."updateAvailable-notice notice error'>

@@ -65,11 +65,23 @@ class Brafton_Update
         if (empty($transient->checked)) {
             return $transient;
         }
- 
+
+        if(get_transient('brafton_updater_unreachable')){
+            return $transient;
+        }
+
         // Get the remote version
         $remote_version = $this->getRemote_version();
-        
+        if(!$remote_version){
+            //Remember the outage so repeated update checks don't stall the admin
+            set_transient('brafton_updater_unreachable', 1, 6 * HOUR_IN_SECONDS);
+            return $transient;
+        }
+
         $remote_info = $this->getRemote_information();
+        if(!is_object($remote_info) || !isset($remote_info->download_link, $remote_info->package, $remote_info->sections['description'], $remote_info->sections['changelog'])){
+            return $transient;
+        }
 
         // If a newer version is available, add the update
         if (version_compare($this->current_version, $remote_version, '<')) {
@@ -102,7 +114,14 @@ class Brafton_Update
     {
 
         if( isset($arg->slug) && $arg->slug === $this->slug){
+            if(get_transient('brafton_updater_unreachable')){
+                return $false;
+            }
             $remote_info = $this->getRemote_information();
+            if(!is_object($remote_info) || !isset($remote_info->plugin_name, $remote_info->new_version, $remote_info->requires, $remote_info->tested, $remote_info->downloaded, $remote_info->last_updated, $remote_info->homepage, $remote_info->download_link, $remote_info->package, $remote_info->sections['description'], $remote_info->sections['changelog'])){
+                //Fall back to wordpress default handling when the update server can't provide info
+                return $false;
+            }
             $obj = new stdClass();
             $obj->slug = $this->slug;
             $obj->plugin_name = $remote_info->plugin_name;
@@ -132,6 +151,9 @@ class Brafton_Update
         //These will come from the api loading in only the appropriate variables based on the domain that they have the api from
         if( isset($arg->slug) && $arg->slug === $this->slug){
             $remote_info = $this->getRemote_information();
+            if(!is_object($remote_info) || !isset($remote_info->plugin_name, $remote_info->new_version, $remote_info->requires, $remote_info->tested, $remote_info->downloaded, $remote_info->banners['low'], $remote_info->banners['high'], $remote_info->last_updated, $remote_info->homepage, $remote_info->download_link, $remote_info->package, $remote_info->sections['description'], $remote_info->sections['services'], $remote_info->sections['changelog'])){
+                return $false;
+            }
             $obj = new stdClass();
             $obj->slug = $this->slug;
             $obj->plugin_name = $remote_info->plugin_name;
@@ -166,19 +188,25 @@ class Brafton_Update
     //Gets the newest Version from the update API
     public function getRemote_version()
     {
-        $request = wp_remote_post($this->update_path, array('body' => array('action' => 'version')));
-        if (!is_wp_error($request) || wp_remote_retrieve_response_code($request) === 200) {
-            return $request['body'];
+        $request = wp_remote_post($this->update_path, array('timeout' => 5, 'body' => array('action' => 'version')));
+        if (!is_wp_error($request) && wp_remote_retrieve_response_code($request) == 200) {
+            $remoteVersion = trim(wp_remote_retrieve_body($request));
+            //Only trust a response that actually looks like a version number
+            if(preg_match('/^\d+(\.\d+)*$/', $remoteVersion)){
+                return $remoteVersion;
+            }
         }
         return false;
     }
- 
+
     //Gets the Plugin information from the update API
     public function getRemote_information(){
-        $request = wp_remote_post($this->update_path, array('body' => array('action' => 'info', 'brand' => $this->brand)));
-        if (!is_wp_error($request) || wp_remote_retrieve_response_code($request) === 200) {
-            //echo '<br> these are the request dumps'; echo '<pre>';var_dump($request);
-            return unserialize($request['body']);
+        $request = wp_remote_post($this->update_path, array('timeout' => 5, 'body' => array('action' => 'info', 'brand' => $this->brand)));
+        if (!is_wp_error($request) && wp_remote_retrieve_response_code($request) == 200) {
+            $remoteInfo = @unserialize(wp_remote_retrieve_body($request));
+            if(is_object($remoteInfo)){
+                return $remoteInfo;
+            }
         }
         return false;
     }

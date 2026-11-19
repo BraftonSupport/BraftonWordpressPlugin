@@ -79,15 +79,15 @@ class BraftonAdministration {
         include BRAFTON_DIR .'admin/BraftonStylePage.php';
     }
     public static function health_check(){
-        $ch = curl_init();
         $client = site_url();
         $url = BRAFTON_BASE_URL.'wp-remote/remote.php?clientUrl='.$client.'&function=health_check';
-        //$url = 'http://localtest.updater.com/wp-remote/remote.php?clientUrl='.$client.'&function=health_check';
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        $response = curl_exec($ch);
-        echo $response;
+        $response = wp_remote_get($url, array('timeout' => 10));
+        if(is_wp_error($response) || wp_remote_retrieve_response_code($response) != 200){
+            //The admin js only understands 'ok' or 'fail'
+            echo 'fail';
+        }else{
+            echo wp_remote_retrieve_body($response);
+        }
         wp_die();
     }
     public static function getBraftonArticles(){

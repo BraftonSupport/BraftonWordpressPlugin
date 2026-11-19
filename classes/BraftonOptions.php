@@ -111,8 +111,9 @@ class BraftonOptions {
             $default_options['braftonVideoCTA'] = BraftonOptions::video_cta();
             add_option('BraftonOptions', $default_options);
         }
-        $option = wp_remote_post('http://updater.brafton.com/u/wordpress/update', array('body' => array('action' => 'register', 'version' => BRAFTON_VERSION, 'domain' => $site_url, 'api' => $default_options['braftonApiKey'], 'brand' => $default_options['braftonApiDomain'] )));
-        add_option('BraftonRegister', $option);
+        //Fire and forget registration: failure to reach the updater must never interrupt option setup
+        $registerResponse = wp_remote_post('http://updater.brafton.com/u/wordpress/update', array('timeout' => 5, 'blocking' => false, 'body' => array('action' => 'register', 'version' => BRAFTON_VERSION, 'domain' => $site_url, 'api' => $default_options['braftonApiKey'], 'brand' => $default_options['braftonApiDomain'] )));
+        add_option('BraftonRegister', is_wp_error($registerResponse) ? $registerResponse->get_error_message() : 'sent');
         update_option('BraftonVersion', BRAFTON_VERSION);
 
     }
